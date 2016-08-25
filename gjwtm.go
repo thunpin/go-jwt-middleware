@@ -34,11 +34,11 @@ type Options struct {
 	Store StoreToken
 }
 
-type GoJwtMiddleware struct {
+type JwtMiddleware struct {
 	options Options
 }
 
-func New(options Options) {
+func New(options Options) *JwtMiddleware {
 	if options.Store == nil {
 		panic("Store is mandatory")
 	}
@@ -57,10 +57,12 @@ func New(options Options) {
 	if options.Extractor == nil {
 		options.Extractor = extractTokenFromHEADER
 	}
+
+	return &JwtMiddleware{options}
 }
 
 // middleware for negroni
-func (middleware *GoJwtMiddleware) HandlerWithNext(
+func (middleware *JwtMiddleware) HandlerJWT(
 	w http.ResponseWriter,
 	r *http.Request,
 	next http.HandlerFunc) {
@@ -83,7 +85,11 @@ func proccess(w http.ResponseWriter, r *http.Request, options *Options) error {
 
 	// token is empty send a empty JWT token to Store method
 	if token == "" {
-		return options.Store(w, r, nil)
+		err = options.Store(w, r, nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+		}
+		return err
 	}
 
 	jwtToken, err := jwt.Parse(token, options.KeyFunc)
