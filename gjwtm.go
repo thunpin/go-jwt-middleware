@@ -5,6 +5,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 type TokenExtractor func(r *http.Request) (string, error)
@@ -67,11 +68,15 @@ func (middleware *JwtMiddleware) HandlerJWT(
 	r *http.Request,
 	next http.HandlerFunc) {
 
-	err := proccess(w, r, &middleware.options)
+	if strings.ToLower(r.Method) == "options" {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		err := proccess(w, r, &middleware.options)
 
-	// If there was an error or dont exist a next, do not call next function.
-	if err == nil && next != nil {
-		next(w, r)
+		// If there was an error or dont exist a next, do not call next function.
+		if err == nil && next != nil {
+			next(w, r)
+		}
 	}
 }
 
