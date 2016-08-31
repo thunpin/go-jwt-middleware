@@ -68,20 +68,22 @@ func (middleware *JwtMiddleware) HandlerJWT(
 	r *http.Request,
 	next http.HandlerFunc) {
 
-	if strings.ToLower(r.Method) == "options" {
-		w.WriteHeader(http.StatusOK)
-	} else {
-		err := proccess(w, r, &middleware.options)
+	err := proccess(w, r, &middleware.options)
 
-		// If there was an error or dont exist a next, do not call next function.
-		if err == nil && next != nil {
-			next(w, r)
-		}
+	// If there was an error or dont exist a next, do not call next function.
+	if err == nil && next != nil {
+		next(w, r)
 	}
 }
 
 // proccess excute the logic flow to extract and store the JWT object
 func proccess(w http.ResponseWriter, r *http.Request, options *Options) error {
+	// if the request method is options return nil
+	// OPTIONS method is used from browser from security reasons.
+	if strings.ToLower(r.Method) == "options" {
+		return nil
+	}
+
 	token, err := options.Extractor(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
