@@ -2,10 +2,11 @@ package jwt_mdl
 
 import (
 	"errors"
-	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 type TokenExtractor func(r *http.Request) (string, error)
@@ -131,7 +132,7 @@ func extractTokenFromHEADER(r *http.Request) (string, error) {
 	}
 
 	// validate the Authorization HEAD format
-	regex := regexp.MustCompile(`(?i)(bearer)( +)([\w-]+)`)
+	regex := regexp.MustCompile(`(?i)(bearer)( +)([\w-.]+)`)
 	if !regex.MatchString(auth) {
 		msg := "Invalid Authorization header format. Authorization: Bearer <token>"
 		return "", errors.New(msg)
